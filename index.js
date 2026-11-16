@@ -18,6 +18,7 @@ async function connectToMongoDB() {
 
         // Creating database in mongodb
         const coffeeCollection = client.db("coffeeDB").collection("coffee");
+        const userCollection = client.db("coffeeDB").collection("user");
 
         // Adding new coffee to database
         app.post("/coffee", async (req, res) => {
@@ -34,14 +35,14 @@ async function connectToMongoDB() {
             res.send(result);
         })
 
-        // Update a coffee
+        // Find coffee to Update
         app.get("/coffee/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await coffeeCollection.findOne(query);
             res.send(result);
         })
-        // Changing field values for update
+        // Update coffee
         app.put("/coffee/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
@@ -68,6 +69,65 @@ async function connectToMongoDB() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await coffeeCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        // Adding new User to database
+        app.post("/user", async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+
+        // Getting/showing users to client
+        app.get("/user", async (req, res) => {
+            const cursor = userCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        // Deleting user
+        app.delete("/user/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        // Find User to Update
+        app.get("/user/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await userCollection.findOne(query);
+            res.send(result);
+        })
+        // Update user
+        app.put("/user/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedUser = req.body;
+            const user = {
+                $set: {
+                    name: updatedUser.name,
+                    email: updatedUser.email
+                }
+            };
+            const result = await userCollection.updateOne(filter, user, options);
+            res.send(result);
+        })
+
+        //Doing specefic update using PATCH
+        app.patch("/user", async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const updateDoc = {
+                $set: {
+                    lastLoggedAt: user.lastLoggedAt,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
 
